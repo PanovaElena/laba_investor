@@ -1,11 +1,8 @@
-from investor import *
-import cProfile
 import random
-import time
 
-N = 15
-M = 20
-S = 15000
+N = 50
+M = 50
+S = 100000
 
 
 def generate_rand_data():
@@ -26,21 +23,15 @@ def generate_rand_data():
         for lot in range(M+1):
             price = random.randint(min_price, max_price)
             number = random.randint(min_number, max_number)
-            strobl = "%d %s %0.1f %d" % (date, name, cost(price), number)
-            lot = Lot(strobl, maturity_date = N + 30, bond_value = bond_value)
-            res.append(Object(lot.weight, lot.value))
+            res.append("%d %s %0.1f %d" % (date, name, cost(price), number))
                 
     return res
     
 
-data = generate_rand_data()
-
-start_time = time.time()
-solve_knapsack_problem(data, S)
-end_time = time.time()
-
-print(end_time - start_time)
-
-#cProfile.run('solve_knapsack_problem(data, S)')
+res = generate_rand_data()
+with open("large_input.txt", "w") as file:
+    file.write("%d %d %d\n" % (N, M, S))
+    for bond in res:
+        file.write(bond + "\n")
     
     

@@ -24,41 +24,6 @@ struct Solution {
 };
 
 
-const int N = 15;
-const int M = 20;
-const int S = 15000;
-
-
-std::vector<Object> generate_rand_objects() {
-	const int bond_value = 1000;
-	const int maturity_date = N + 30;
-	const int max_price = 1500;
-	const int min_price = 1000;
-	const int max_number = 20;
-	const int min_number = 1;
-
-	std::vector<Object> res;
-
-	std::random_device randDevice;
-	std::default_random_engine randGen(randDevice());
-	std::uniform_int_distribution<int> distPrice(min_price, max_price);
-	std::uniform_int_distribution<int> distNumber(min_number, max_number);
-
-	for (int date = 1; date < N + 1; date++)
-		for (int lot = 0; lot < M + 1; lot++) {
-			int price = distPrice(randGen);
-			int number = distNumber(randGen);
-
-			int weight = number * price;
-			int value = (maturity_date - date + bond_value - price) * number;
-
-			res.push_back(Object(weight, value));
-		}
-
-	return res;
-}
-
-
 Solution solve_knapsack_problem(const std::vector<Object> objects, int W) {
 	int n = objects.size();
 	std::vector<std::vector<int>> m(n + 1);
@@ -95,22 +60,6 @@ Solution solve_knapsack_problem(const std::vector<Object> objects, int W) {
 
 	return s;
 }
-
-
-//int main() {
-//	std::vector<Object> data = generate_rand_data();
-//
-//	std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
-//	Solution res = solve_knapsack_problem(data, S);
-//	std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
-//	std::chrono::milliseconds time = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
-//
-//	std::cout << "Time is " << time.count() << std::endl;
-//
-//  std::cout << res.max_profit << std::endl;
-//	for (int i = 0; i < res.taken.size(); i++)
-//		std::cout << taken[i] << std::endl;
-//}
 
 
 PYBIND11_MODULE(investor_c, object) {

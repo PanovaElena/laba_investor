@@ -1,5 +1,7 @@
 import investor_c as cmi
 import sys
+import time
+import mem_use_win32
 
 command_line_args = {sys.argv[2*i+1]:sys.argv[2*i+2] for i in range((len(sys.argv)-1)//2)}
 
@@ -49,7 +51,7 @@ def read():
                 strobl = lines[i]
                 lot = Lot(strobl, maturity_date = maturity_date)
                 arrlots.append(lot)
-                arrobjects.append(cmi.Object(lot.weight, lot.value))
+                arrobjects.append((lot.weight, lot.value))
         
     except Exception as e:
         print(str(e))
@@ -70,16 +72,22 @@ def write(max_profit, arrlots, taken):
 
 # --------------- launch ---------------
 
-
-def main():
-    arrlots, arrobjects, S = read()
-    print("\n".join([str(arrobjects[i].weight) + " " + str(arrobjects[i].value) for i in range(len(arrobjects))]))
-    res = cmi.solve_knapsack_problem(arrobjects, S)
+def solve_knapsack_problem(list_objects, S):
+    objarr = [cmi.Object(*el) for el in list_objects]
+    res = cmi.solve_knapsack_problem(objarr, S)
     max_profit = res.max_profit
     taken = list(res.taken)
     taken.reverse()
-    print(taken)
+    return max_profit, taken
+
+def main():
+    arrlots, arrobjects, S = read()
+    start_time = time.time()
+    max_profit, taken = solve_knapsack_problem(arrobjects, S)
     write(max_profit, arrlots, taken)
+    end_time = time.time()
+    print("TIME:", end_time - start_time, "s")
+    print("MEMORY:", mem_use_win32.get_memory_info())
 
 
 if __name__ == '__main__':
