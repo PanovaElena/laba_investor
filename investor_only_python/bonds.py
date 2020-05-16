@@ -1,9 +1,11 @@
 from numba import njit, jit, jitclass, int32
 import numpy as np
+import sys
 
 import warnings
 warnings.filterwarnings("ignore")
 
+command_line_args = {sys.argv[2*i+1]:sys.argv[2*i+2] for i in range((len(sys.argv)-1)//2)}
 
 class Lot:
     
@@ -42,8 +44,8 @@ class Object:
 @jit
 def solve_knapsack_problem(objects, W):
     n = len(objects)
-    m = np.zeros(shape = (n+1, W+1), dtype = int)
-    arrpath_j = np.zeros(shape = (n+1, W+1), dtype = int)
+    m = np.zeros(shape=(n+1, W+1), dtype=int)
+    arrpath_j = np.zeros(shape=(n+1, W+1), dtype=int)
     
     for i in range(1, n+1):
         for j in range(0, W+1):
@@ -62,69 +64,46 @@ def solve_knapsack_problem(objects, W):
     
     cur_j = W
     for i in range(n, 0, -1):
-        if not cur_j == arrpath_j[i, cur_j]:  # element was taken
+        if cur_j != arrpath_j[i, cur_j]:  # element was taken
             taken.append(i-1)
             cur_j = arrpath_j[i, cur_j]
 
-    taken.reverse()            
+    taken.reverse()       
                 
-    return int(m[n, W]), taken
-
-
-#@jit
-#def solve_knapsack_problem(objects, W):
-#    n = len(objects)
-#    m = [[0 for j in range(W+1)] for i in range(n+1)]
-#    arrpath_j = [[0 for j in range(W+1)] for i in range(n+1)]
-#    
-#    for i in range(1, n+1):
-#        for j in range(0, W+1):
-#            wi = objects[i-1].weight
-#            vi = objects[i-1].value
-#            if wi > j:
-#                m[i][j] = m[i-1][j]
-#            else:
-#                m[i][j] = max(m[i-1][j], m[i-1][j-wi] + vi)
-#            if m[i][j] == m[i-1][j]:
-#                arrpath_j[i][j] = j
-#            else:
-#                arrpath_j[i][j] = j-wi
-#        
-#    taken = []
-#    
-#    cur_j = W
-#    for i in range(n, 0, -1):
-#        if not cur_j == arrpath_j[i][cur_j]:  # element was taken
-#            taken.append(i-1)
-#            cur_j = arrpath_j[i][cur_j]
-#
-#    taken.reverse()            
-#                
-#    return int(m[n][W]), taken
+    return m[n, W], taken
 
 
 # --------------- input ----------------
 
 
 def read():
+
     try:
-        N, M, S = (int(elem) for elem in input().split())
-        if N * M <= 0:
-            raise ValueError()
+        alg = command_line_args['-a']
+        if (alg != "dynamic"):
+            raise ValueError("Unexpected algorithm")
+        
+        with open(command_line_args['-i'], 'r') as file:
+        
+            lines = file.readlines()
             
-        maturity_date = N + 30    
+            N, M, S = (int(elem) for elem in lines[0].split())
+            if N * M <= 0:
+                raise ValueError("Wrong N or M")
+                
+            maturity_date = N + 30    
+                
+            arrlots = []
+            arrobjects = []
             
-        arrlots = []
-        arrobjects = []
-        strobl = input()
-        while strobl:
-            lot = Lot(strobl, maturity_date = maturity_date)
-            arrlots.append(lot)
-            arrobjects.append(Object(lot.weight, lot.value))
-            strobl = input()
+            for i in range(1, len(lines)):
+                strobl = lines[i]
+                lot = Lot(strobl, maturity_date = maturity_date)
+                arrlots.append(lot)
+                arrobjects.append(Object(lot.weight, lot.value))
         
     except Exception as e:
-        print("ERROR: WRONG INPUT\n", str(e))
+        print(str(e))
 
     return arrlots, arrobjects, S    
 
@@ -133,9 +112,12 @@ def read():
 
 
 def write(max_profit, arrlots, taken):
-    print(max_profit)
-    print("\n".join([arrlots[ind].strobl for ind in taken]))
-    print()
+    try:
+        with open(command_line_args['-o'], 'w') as file:   
+            file.write(str(max_profit)+"\n")
+            file.write("".join([arrlots[ind].strobl for ind in taken]))  
+    except Exception as e:
+        print(str(e))
 
 
 # --------------- launch ---------------
@@ -143,7 +125,9 @@ def write(max_profit, arrlots, taken):
 
 def main():
     arrlots, arrobjects, S = read()
+    print("\n".join([str(arrobjects[i].weight) + " " + str(arrobjects[i].value) for i in range(len(arrobjects))]))
     max_profit, taken = solve_knapsack_problem(arrobjects, S)
+    print(taken)
     write(max_profit, arrlots, taken)
 
 
